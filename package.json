@@ -1,0 +1,8 @@
+{
+  "name": "happybirthdaybabasi20th",
+  "version": "1.0.0",
+  "description": "20th Birthday Letter & Vintage Music Box",
+  "scripts": {
+    "deploy": "vercel --prod"
+  }
+}

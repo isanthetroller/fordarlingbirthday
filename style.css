@@ -631,12 +631,12 @@ body {
   pointer-events: none;
 }
 
-/* Inconsistent hand-drawn red doodle arrow box */
+/* Inconsistent but smooth hand-drawn red doodle arrow box */
 .polaroid-arrow-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
+  width: 64px;
   flex-shrink: 0;
   pointer-events: none;
 }
