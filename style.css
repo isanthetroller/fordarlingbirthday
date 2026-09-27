@@ -1,0 +1,1023 @@
+:root {
+  --bg-color: #f1e8d6;
+  --envelope-width: clamp(170px, 24vw, 260px);
+  --flower-width: clamp(240px, 35vw, 400px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  position: relative;
+}
+
+/* Ambient atmospheric glow */
+.ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 75% 65% at 50% 50%,
+    rgba(255, 255, 255, 0.50) 0%,
+    rgba(246, 238, 222, 0.40) 45%,
+    rgba(241, 232, 214, 0) 80%
+  );
+}
+
+/* Sunlit Meadow Background (smooth cross-fade in advance) */
+.meadow-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('meadow_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.meadow-bg.visible {
+  opacity: 1;
+}
+
+.meadow-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 85% 85% at 50% 50%,
+    rgba(253, 248, 238, 0.40) 0%,
+    rgba(235, 220, 195, 0.30) 60%,
+    rgba(60, 42, 25, 0.22) 100%
+  );
+  pointer-events: none;
+}
+
+/* Background Swirling Flower Burst Canvas */
+#burstCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Floating scene container */
+.scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  z-index: 2;
+}
+
+/* Floating container with smooth sinusoidal motion */
+.envelope-float {
+  animation: organicFloat 4.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Click Me Prompt Badge at the beginning */
+.click-me-hint {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 252, 245, 0.92);
+  border: 1px solid rgba(210, 190, 160, 0.75);
+  padding: 8px 22px;
+  border-radius: 24px;
+  box-shadow: 0 8px 20px rgba(145, 95, 55, 0.18),
+              0 2px 5px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s ease,
+              background-color 0.3s ease,
+              opacity 0.6s ease;
+  animation: pulseHint 2.4s ease-in-out infinite alternate;
+  user-select: none;
+  z-index: 10;
+}
+
+.click-me-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  color: #483328;
+  letter-spacing: 0.6px;
+}
+
+.click-me-sparkle {
+  font-size: 14px;
+  color: #d48e36;
+  animation: sparkleTwinkle 2s ease-in-out infinite alternate;
+}
+
+.click-me-heart {
+  font-size: 14px;
+  color: #9c2432;
+  transition: transform 0.2s ease;
+}
+
+.envelope-card:not(.opened):hover + .click-me-hint,
+.click-me-hint:hover {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 12px 26px rgba(145, 95, 55, 0.28);
+  background: rgba(255, 255, 252, 0.98);
+}
+
+.envelope-card:not(.opened):hover + .click-me-hint .click-me-heart,
+.click-me-hint:hover .click-me-heart {
+  transform: scale(1.25);
+}
+
+@keyframes pulseHint {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 6px 16px rgba(145, 95, 55, 0.15);
+  }
+  100% {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 24px rgba(145, 95, 55, 0.24);
+  }
+}
+
+@keyframes sparkleTwinkle {
+  0% { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
+  100% { transform: scale(1.2) rotate(18deg); opacity: 1; }
+}
+
+/* Hide click me hint when envelope opens */
+.envelope-card.opened + .click-me-hint {
+  opacity: 0;
+  transform: translateY(12px) scale(0.85);
+  pointer-events: none;
+}
+
+/* Interactive envelope card containing both closed and open states */
+.envelope-card {
+  position: relative;
+  width: var(--envelope-width);
+  height: calc(var(--envelope-width) * 421 / 502);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 10px 20px rgba(160, 115, 75, 0.22));
+}
+
+/* Subtle, tasteful hover effects: gentle lift, slight tilt, and warm candlelight glow */
+.envelope-card:not(.opened):hover {
+  transform: translateY(-8px) scale(1.04) rotate(-0.8deg);
+  filter: drop-shadow(0 18px 28px rgba(145, 95, 55, 0.32)) drop-shadow(0 0 18px rgba(255, 235, 195, 0.45));
+}
+
+/* Tactile press response */
+.envelope-card:not(.opened):active {
+  transform: translateY(-2px) scale(0.98) rotate(0deg);
+  transition-duration: 0.12s;
+}
+
+/* Soft ambient wax seal glow centered on the envelope seal */
+.envelope-glow {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  left: 50%;
+  bottom: 44%;
+  transform: translate(-50%, 50%) scale(0.85);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 230, 175, 0.65) 0%, rgba(255, 215, 150, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1;
+}
+
+.envelope-card:not(.opened):hover .envelope-glow {
+  opacity: 1;
+  transform: translate(-50%, 50%) scale(1.25);
+}
+
+/* Shared image base */
+.envelope-img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+  -webkit-user-drag: none;
+  transform-origin: bottom center;
+}
+
+/* Closed state */
+.envelope-closed {
+  z-index: 2;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0px);
+  transition: opacity 0.6s cubic-bezier(0.3, 0, 0.2, 1),
+              transform 0.6s cubic-bezier(0.3, 0, 0.2, 1),
+              filter 0.6s ease;
+}
+
+/* Open state: initially tucked inside, ready to blossom upward */
+.envelope-open {
+  z-index: 3;
+  opacity: 0;
+  transform: translateY(32px) scale(0.93);
+  filter: blur(4px);
+  pointer-events: none;
+  transition: opacity 0.75s cubic-bezier(0.18, 0.9, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1.08),
+              filter 0.75s ease;
+}
+
+/* Smooth opening transition */
+.envelope-card.opened {
+  cursor: default;
+}
+
+.envelope-card.opened .envelope-closed {
+  opacity: 0;
+  transform: scale(0.94) translateY(6px);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.envelope-card.opened .envelope-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+}
+
+/* Dreamy fade-out state after reading holds for 1.5s */
+.envelope-card.fade-out {
+  opacity: 0;
+  transform: translateY(-24px) scale(0.92);
+  filter: blur(10px);
+  pointer-events: none;
+  transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 0.9s ease;
+}
+
+/* Keyframes for natural breathing levitation */
+@keyframes organicFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-9px) rotate(0.6deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-9px) rotate(-0.6deg);
+  }
+}
+
+/* Central blooming flower container */
+.flower-container {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transform: scale(0.85);
+  filter: blur(8px);
+  transition: opacity 1.1s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.flower-container.visible {
+  display: flex;
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0px);
+}
+
+/* Central flower drop-down animation from top to bottom */
+.flower-container.drop-down {
+  transform: translateY(125vh) rotate(5deg) scale(0.92);
+  opacity: 0;
+  transition: transform 1.35s cubic-bezier(0.45, 0, 0.7, 0.25),
+              opacity 1.35s cubic-bezier(0.45, 0, 0.7, 0.25);
+  pointer-events: none;
+}
+
+.flower-container.drop-down .flower-image {
+  animation-play-state: paused;
+}
+
+.flower-image {
+  width: var(--flower-width);
+  height: auto;
+  display: block;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  animation: flowerPulseFloat 5.2s ease-in-out infinite;
+}
+
+@keyframes flowerPulseFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-11px) rotate(0.6deg);
+  }
+}
+
+/* Subtle romantic sparkle / mote particles */
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 235, 190, 0.95) 0%, rgba(215, 175, 120, 0.3) 75%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 7s linear infinite;
+  opacity: 0;
+}
+
+@keyframes drift {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  75% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(-130px) translateX(24px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* ========================================================
+   PHYSICAL VINTAGE BIRTHDAY LETTER & MUSIC BOX
+   Stationery hierarchy: Music Player -> Label -> Greeting -> Body -> Signature
+   ======================================================== */
+.stationery-letter {
+  display: none;
+  opacity: 0;
+  transform: translateY(20px) scale(0.985);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+  width: min(670px, 92vw);
+  background-color: #fdfaf3;
+  /* Authentic laid stationery paper texture */
+  background-image: 
+    radial-gradient(rgba(175, 150, 120, 0.10) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, rgba(235, 222, 202, 0.12) 0px, rgba(235, 222, 202, 0.12) 1px, transparent 1px, transparent 24px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(248, 240, 227, 0.40) 100%);
+  background-size: 16px 16px, 100% 24px, 100% 100%;
+  border-radius: 8px;
+  padding: 38px 46px 42px 46px;
+  position: relative;
+  /* Soft, fine stationery hairline border */
+  border: 1px solid rgba(210, 192, 166, 0.72);
+  /* Physical layered stationery paper shadow */
+  box-shadow: 
+    0 1px 3px rgba(45, 30, 20, 0.04),
+    0 10px 28px rgba(45, 28, 18, 0.08),
+    0 26px 58px rgba(45, 28, 18, 0.09),
+    inset 0 0 50px rgba(238, 225, 202, 0.20);
+  user-select: none;
+  max-height: 92vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 32, 42, 0.28) transparent;
+}
+
+/* Subtle interior watermark frame */
+.stationery-letter::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(212, 194, 168, 0.35);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.stationery-letter::-webkit-scrollbar {
+  width: 5px;
+}
+.stationery-letter::-webkit-scrollbar-thumb {
+  background: rgba(140, 32, 42, 0.28);
+  border-radius: 3px;
+}
+
+.stationery-letter.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Refined washi tape fastener at top center */
+.stationery-tape {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 82px;
+  height: 22px;
+  background: rgba(244, 235, 218, 0.88);
+  border: 1px solid rgba(215, 200, 175, 0.55);
+  box-shadow: 0 2px 5px rgba(50, 30, 20, 0.10);
+  clip-path: polygon(0% 0%, 100% 0%, 98% 30%, 100% 70%, 98% 100%, 0% 100%, 2% 70%, 0% 30%);
+  backdrop-filter: blur(1.5px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Subtle vintage postmark stamp in top right corner */
+.stationery-stamp {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  color: rgba(140, 35, 48, 0.36);
+  border: 1px dashed rgba(140, 35, 48, 0.32);
+  border-radius: 4px;
+  padding: 4px 8px;
+  transform: rotate(2.5deg);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+.stamp-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.stamp-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.stamp-sub {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+/* 1. Music-Box Player Component */
+.music-box-player {
+  background: #f8f3e8;
+  border: 1px solid rgba(214, 197, 172, 0.80);
+  border-radius: 8px;
+  padding: 16px 20px 16px 20px;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.85),
+    0 2px 7px rgba(60, 42, 28, 0.04);
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Cassette Display (Centered in Music-Box) */
+.cassette-display {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.cassette-art {
+  width: 100%;
+  max-width: 345px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 18px rgba(55, 25, 20, 0.20));
+  -webkit-user-drag: none;
+  transition: transform 0.25s ease;
+}
+
+.cassette-display:hover .cassette-art {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Vintage Polaroid Scrapbook Snapshots (Bottom of Letter) */
+.letter-bottom-section {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 26px;
+  gap: 16px;
+  position: relative;
+  z-index: 4;
+}
+
+.polaroid-duo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.polaroid-frame {
+  position: relative;
+  background: #ffffff;
+  padding: 6px 6px 14px 6px;
+  border-radius: 2px;
+  box-shadow: 
+    0 4px 14px rgba(45, 25, 15, 0.14),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  user-select: none;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.polaroid-frame:hover {
+  box-shadow: 0 8px 22px rgba(45, 25, 15, 0.22);
+}
+
+.polaroid-young {
+  width: 115px;
+  transform: rotate(-3deg);
+}
+
+.polaroid-young:hover {
+  transform: rotate(-1deg) scale(1.04);
+}
+
+.polaroid-now {
+  width: 125px;
+  transform: rotate(2.5deg);
+}
+
+.polaroid-now:hover {
+  transform: rotate(0.5deg) scale(1.04);
+}
+
+.polaroid-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  border-radius: 1px;
+  -webkit-user-drag: none;
+}
+
+.polaroid-note {
+  font-family: 'Caveat', cursive;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a3528;
+  text-align: center;
+  margin-top: 5px;
+  line-height: 1;
+  letter-spacing: 0.3px;
+}
+
+.polaroid-tape-strip {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(1deg);
+  width: 42px;
+  height: 13px;
+  background: rgba(242, 233, 214, 0.86);
+  border: 1px solid rgba(215, 200, 175, 0.5);
+  box-shadow: 0 1px 2px rgba(40, 25, 15, 0.08);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* Inconsistent hand-drawn red doodle arrow box */
+.polaroid-arrow-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.polaroid-doodle-arrow {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 1px 1px rgba(189, 36, 53, 0.18));
+}
+
+/* Player Controls Strip */
+.player-controls-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(212, 195, 170, 0.65);
+  border-radius: 7px;
+  padding: 9px 15px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.85);
+}
+
+.master-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #7a1822; /* Vintage deep burgundy */
+  color: #ffffff;
+  border: 1px solid rgba(255, 235, 205, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(122, 24, 34, 0.30);
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.master-play-btn:hover {
+  transform: scale(1.06);
+  background: #8e1c27;
+  box-shadow: 0 4px 12px rgba(122, 24, 34, 0.40);
+}
+
+.master-play-btn:active {
+  transform: scale(0.94);
+}
+
+.master-play-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.master-play-btn .icon-play {
+  display: none;
+}
+
+.master-play-btn.paused .icon-play {
+  display: block;
+  transform: translateX(1px);
+}
+
+.master-play-btn.paused .icon-pause {
+  display: none;
+}
+
+/* Track info, title, time & progress bar */
+.player-track-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.track-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.now-playing-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1a1410;
+  line-height: 1.2;
+}
+
+.player-time {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #847262;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* Subtle Progress Bar Track */
+.progress-bar-track {
+  width: 100%;
+  height: 3.5px;
+  background: rgba(205, 185, 155, 0.35);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  margin: 1px 0;
+}
+
+.progress-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: #7a1822;
+  border-radius: 2px;
+  transition: width 0.12s linear;
+}
+
+.now-playing-sub {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #786455;
+  letter-spacing: 0.5px;
+}
+
+/* Subtle, restrained audio equalizer visualizer */
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 14px;
+  opacity: 0.40;
+  transition: opacity 0.3s ease;
+  flex-shrink: 0;
+}
+
+.equalizer.active {
+  opacity: 1;
+}
+
+.equalizer .bar {
+  width: 2.5px;
+  background-color: #7a1822;
+  border-radius: 1.5px;
+}
+
+.equalizer.active .bar-1 { animation: eqBounceSmooth 0.85s ease-in-out infinite alternate; }
+.equalizer.active .bar-2 { animation: eqBounceSmooth 1.15s ease-in-out 0.2s infinite alternate; }
+.equalizer.active .bar-3 { animation: eqBounceSmooth 0.95s ease-in-out 0.4s infinite alternate; }
+.equalizer.active .bar-4 { animation: eqBounceSmooth 1.25s ease-in-out 0.1s infinite alternate; }
+.equalizer.active .bar-5 { animation: eqBounceSmooth 1.05s ease-in-out 0.3s infinite alternate; }
+
+@keyframes eqBounceSmooth {
+  0% { height: 3px; }
+  100% { height: 13px; }
+}
+
+/* Delicate stationery separator */
+.stationery-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  user-select: none;
+}
+
+.sep-line {
+  flex-grow: 1;
+  max-width: 75px;
+  height: 1px;
+  background: rgba(205, 185, 155, 0.45);
+}
+
+.sep-ornament {
+  font-size: 11px;
+  color: #8c2834;
+  opacity: 0.75;
+}
+
+/* 2. Small letter label */
+.letter-label {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.8px;
+  color: #826e5d;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+  text-align: left;
+}
+
+/* 3. Primary Visual Focal Point: Greeting Title */
+.letter-greeting {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(27px, 3.8vw, 34px);
+  font-weight: 700;
+  color: #1a1410;
+  line-height: 1.24;
+  letter-spacing: -0.3px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+/* 4. Letter Body - Readable book serif */
+.letter-body {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.84;
+  color: #2b221a;
+  font-style: normal; /* Highly readable, non-italicized heartfelt text */
+  text-align: left;
+}
+
+.letter-para {
+  margin-bottom: 18px;
+}
+
+.letter-para:last-child {
+  margin-bottom: 0;
+}
+
+/* Bottom section with Both Photos and Signature */
+.letter-bottom-section {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 24px;
+  gap: 16px;
+  position: relative;
+  z-index: 4;
+}
+
+/* 5. Handwritten Signature */
+.letter-signature {
+  font-family: 'Caveat', cursive;
+  font-size: 30px;
+  font-weight: 600;
+  color: #201813;
+  text-align: right;
+  padding-bottom: 2px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.signature-heart {
+  color: #7a1822;
+  font-family: sans-serif;
+  font-size: 18px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ========================================================
+   RESPONSIVE DESIGN (1024px, 768px, 430px, 390px, 375px)
+   ======================================================== */
+@media (max-width: 768px) {
+  .stationery-letter {
+    width: min(620px, 92vw);
+    padding: 32px 30px 34px 30px;
+  }
+  .polaroid-young {
+    width: 105px;
+  }
+  .polaroid-now {
+    width: 115px;
+  }
+  .polaroid-arrow-box {
+    width: 44px;
+  }
+  .cassette-art {
+    max-width: 310px;
+  }
+  .letter-greeting {
+    font-size: 26px;
+    margin-bottom: 18px;
+  }
+  .letter-body {
+    font-size: 15.5px;
+    line-height: 1.76;
+  }
+}
+
+@media (max-width: 480px) {
+  .stationery-letter {
+    width: 93vw;
+    padding: 22px 16px 24px 16px;
+    border-radius: 8px;
+  }
+  .stationery-letter::before {
+    inset: 8px;
+  }
+  .stationery-stamp {
+    top: 14px;
+    right: 14px;
+    padding: 3px 6px;
+  }
+  .music-box-player {
+    padding: 12px 12px 14px 12px;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .cassette-art {
+    max-width: 250px;
+  }
+  .player-controls-bar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .master-play-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .master-play-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+  .now-playing-title {
+    font-size: 12.5px;
+  }
+  .player-time {
+    font-size: 9px;
+  }
+  .stationery-separator {
+    margin-bottom: 15px;
+  }
+  .letter-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 7px;
+  }
+  .letter-greeting {
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+  .letter-body {
+    font-size: 14px;
+    line-height: 1.70;
+  }
+  .letter-para {
+    margin-bottom: 13px;
+  }
+  .letter-bottom-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .polaroid-duo {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+  .polaroid-young {
+    width: 88px;
+    padding: 3px 3px 8px 3px;
+  }
+  .polaroid-young .polaroid-note {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .polaroid-arrow-box {
+    width: 36px;
+  }
+  .polaroid-now {
+    width: 96px;
+    padding: 3px 3px 8px 3px;
+  }
+  .polaroid-now .polaroid-note {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .letter-signature {
+    align-self: flex-end;
+    font-size: 24px;
+    margin-top: 0;
+  }
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Letter For You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  <!-- Sunlit Meadow Background (smoothly revealed in advance before flowers drop) -->
+  <div class="meadow-bg" id="meadowBg"></div>
+
+  <!-- Ambient magical particles -->
+  <div class="sparkles-container" id="sparkles"></div>
+
+  <!-- Swirling Flower Burst Canvas (Behind Center) -->
+  <canvas id="burstCanvas"></canvas>
+
+  <div class="scene" id="scene">
+    <!-- Clickable floating envelope -->
+    <div class="envelope-float" id="envelopeWrapper" title="Click to open">
+      <div class="envelope-card" id="envelopeCard">
+        <div class="envelope-glow"></div>
+        <img
+          id="envelopeClosed"
+          src="envelope.png"
+          alt="Vintage Watercolor Envelope"
+          class="envelope-img envelope-closed"
+          draggable="false"
+        />
+        <img
+          id="envelopeOpen"
+          src="envelope_open.png"
+          alt="Opened Letter with Flowers"
+          class="envelope-img envelope-open"
+          draggable="false"
+        />
+      </div>
+
+      <!-- Click me prompt text at the beginning -->
+      <div class="click-me-hint" id="clickMeHint" title="Click to open">
+        <span class="click-me-sparkle">&#10024;</span>
+        <span class="click-me-text">Click me</span>
+        <span class="click-me-heart">&hearts;</span>
+      </div>
+    </div>
+
+    <!-- Transparent blooming flower animation in center -->
+    <div class="flower-container" id="flowerContainer">
+      <img
+        id="flowerImg"
+        src=""
+        alt="Blooming Flower"
+        class="flower-image"
+        draggable="false"
+      />
+    </div>
+
+    <!-- Physical Vintage Birthday Letter & Music Box -->
+    <article class="stationery-letter" id="mixtapeCard">
+      <!-- Refined washi tape fastener at top -->
+      <div class="stationery-tape" aria-hidden="true"></div>
+
+      <!-- Subtle vintage postmark detail in top corner -->
+      <div class="stationery-stamp" aria-hidden="true">
+        <div class="stamp-inner">
+          <span class="stamp-label">POSTE &bull; № 20</span>
+          <span class="stamp-sub">FOR DARLING &hearts;</span>
+        </div>
+      </div>
+
+      <!-- 1. Music-Box Player Component -->
+      <header class="music-box-player">
+        <div class="cassette-display" id="cassetteDisplay" title="Click to Play / Pause">
+          <img
+            src="cassette_tape.png"
+            alt="Vintage Botanical Dark Red Cassette Tape"
+            class="cassette-art"
+            draggable="false"
+          />
+        </div>
+
+        <div class="player-controls-bar">
+          <button class="master-play-btn" id="masterPlayBtn" title="Play / Pause Happy Birthday" aria-label="Play or Pause">
+            <svg class="icon-play" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19" fill="currentColor"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/></svg>
+          </button>
+          <div class="player-track-info">
+            <div class="track-header-row">
+              <span class="now-playing-title" id="nowPlayingTitle">Happy Birthday to You &#9835;</span>
+              <span class="player-time" id="playerTime">0:00 / 0:17</span>
+            </div>
+            <!-- Subtle progress bar track -->
+            <div class="progress-bar-track" id="progressBarTrack" title="Seek playback">
+              <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+          </div>
+          <div class="equalizer active" id="equalizer" aria-label="Audio Visualizer">
+            <div class="bar bar-1"></div>
+            <div class="bar bar-2"></div>
+            <div class="bar bar-3"></div>
+            <div class="bar bar-4"></div>
+            <div class="bar bar-5"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Delicate stationery separator -->
+      <div class="stationery-separator" aria-hidden="true">
+        <span class="sep-line"></span>
+        <span class="sep-ornament">&#10047;</span>
+        <span class="sep-line"></span>
+      </div>
+
+      <!-- 2. Small letter label -->
+      <div class="letter-label">A LETTER FOR YOU &bull; 20TH BIRTHDAY</div>
+
+      <!-- 3. Primary Visual Focal Point: Greeting Title -->
+      <h1 class="letter-greeting">Happy Birthday, my Darling!!!</h1>
+
+      <!-- 4. Birthday message body -->
+      <div class="letter-body">
+        <p class="letter-para">
+          Happy Birthday my Darling!!!! I just wanted to let you know that I really am happy kasi you finally had your 20th birthday hehehe and im not alone anymore, I know this might be digital for now but I promise you that it holds just as much of the effort you put in the gifts you gave me last time but other than that im really happy that you came in my life and i want to congratulate youuu again happy birthday my love. I hope that now its your birthday i hope you become really really happyyyyy and always know that there is alot of people loving you including me and your family and sana makuha mo ung mga bagay na gusto mooo deserve na deserve mo yan for being the best girlfriend ever and u always deserve being happy all the timeee so dont be sad oki.
+        </p>
+        <p class="letter-para">
+          Gusto ko din mag thank you sa lahat ng ginagawa mo for me kahit maliliit na bagay lang ung nabibigay ko sayo pabalik. thank you sa pag intindi sakin kahit minsan ang kulit ko or may mga times na hindi ko alam pano ko ieexplain ung sarili ko. thank you sa pag stay kahit may mga araw na hindi tayo okay my baby i love you so much my darlingbear and my forever babasi.
+        </p>
+        <p class="letter-para">
+          I thank god everyday for giving me you hehehe, again happy birthday my love I hope you have the happiest day everr I love youuuu my baby and more birthdays to come with you hehehe!!!
+        </p>
+      </div>
+
+      <!-- Bottom Scrapbook Section: Both Pictures + Red Doodle Arrow + Signature -->
+      <div class="letter-bottom-section">
+        <div class="polaroid-duo">
+          <!-- 1st Photo: Then (Young Darling) -->
+          <div class="polaroid-frame polaroid-young" id="polaroidYoung" title="Little Darling">
+            <div class="polaroid-tape-strip" aria-hidden="true"></div>
+            <img src="photo_young.png" alt="Young Darling" class="polaroid-img" draggable="false" />
+            <div class="polaroid-note">then &hearts;</div>
+          </div>
+
+          <!-- Inconsistent hand-drawn red doodle line pointing from 1st image to 2nd image -->
+          <div class="polaroid-arrow-box" aria-hidden="true" title="Growing up to 20">
+            <svg class="polaroid-doodle-arrow" viewBox="0 0 68 32" fill="none">
+              <!-- Hand-drawn wobbly meandering red line -->
+              <path d="M 4,18 Q 18,8 34,17 Q 48,22 62,15" stroke="#bd2435" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Hand-drawn arrow head pointing to 2nd image -->
+              <path d="M 52,9 L 62,15 L 54,23" stroke="#bd2435" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+
+          <!-- 2nd Photo: Now (Darling at 20) -->
+          <div class="polaroid-frame polaroid-now" id="polaroidNow" title="My 20yo Darling">
+            <div class="polaroid-tape-strip" aria-hidden="true"></div>
+            <img src="photo_now.jpg" alt="Darling Now" class="polaroid-img" draggable="false" />
+            <div class="polaroid-note">now (20) &hearts;</div>
+          </div>
+        </div>
+
+        <!-- 5. Handwritten Signature -->
+        <div class="letter-signature">
+          your darling <span class="signature-heart">&hearts;</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
